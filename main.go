@@ -58,26 +58,31 @@ func getTodoById(c *gin.Context) {
 
 func updateTodoById(c *gin.Context) {
 	id := c.Param("id")
-	var savedTodo models.Todo
-	var itWasFound bool
+	body, _ := c.GetRawData()
+	rawData := make(map[string]string)
 
 	for i, todo := range todos {
 		if todo.Id == id {
-			savedTodo = todos[i]
-			itWasFound = true
-			break
+			/* Converting request body type []byte to map
+			to delete the key id before updating */
+			json.Unmarshal(body, &rawData)
+			delete(rawData, "id")
+
+			/* Turning rawData back to []bytes so
+			Marshal() can match keys and update them */
+			jsonBytes, _ := json.Marshal(rawData)
+			json.Unmarshal(jsonBytes, &todos[i])
+
+			c.IndentedJSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Todo %v updated", id)})
+			return
+
+		} else {
+			if i == len(todos)-1 {
+				c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+				return
+			}
 		}
 	}
-
-	fmt.Println(savedTodo)
-	fmt.Println(itWasFound)
-	rawData, _ := c.GetRawData()
-	fmt.Println(string(rawData))
-
-	var data map[string]interface{}
-	json.Unmarshal(rawData, &data)
-	fmt.Println(data)
-
 }
 
 func deleteTodoById(c *gin.Context) {

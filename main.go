@@ -3,7 +3,8 @@ package main
 import (
 	"net/http"
 	"reflect"
-	"test/my-todo-api/models"
+
+	"almsrr/todo-web-service/models"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

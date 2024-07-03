@@ -1,4 +1,4 @@
-module test/my-todo-api
+module almsrr/todo-web-service
 
 go 1.22.4
 

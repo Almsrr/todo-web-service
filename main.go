@@ -2,6 +2,7 @@ package main
 
 import (
 	"almsrr/todo-web-service/controllers"
+	"almsrr/todo-web-service/handlers"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,9 @@ func main() {
 	router.POST("/api/todos", controllers.PostTodo)
 	router.PUT("/api/todos/:id", controllers.UpdateTodoById)
 	router.DELETE("/api/todos/:id", controllers.DeleteTodoById)
-
+	
+	handlers.ConnectToDb()
+	
 	router.Run("localhost:8080")
 }
 

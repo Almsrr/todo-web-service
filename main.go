@@ -1,8 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
-	"reflect"
 
 	"almsrr/todo-web-service/models"
 
@@ -60,53 +61,22 @@ func updateTodoById(c *gin.Context) {
 	var savedTodo models.Todo
 	var itWasFound bool
 
-	for i, a := range todos {
-		if a.Id != id {
-			c.IndentedJSON((http.StatusNotFound), gin.H{"message": "Todo not found"})
-		} else {
+	for i, todo := range todos {
+		if todo.Id == id {
 			savedTodo = todos[i]
 			itWasFound = true
 			break
 		}
 	}
 
-	if itWasFound {
-		if body := c.Request.Body; body != nil {
+	fmt.Println(savedTodo)
+	fmt.Println(itWasFound)
+	rawData, _ := c.GetRawData()
+	fmt.Println(string(rawData))
 
-			v := reflect.ValueOf(body)
-			for i := 0; i < v.NumField(); i++ {
-				propName := v.Type().Field(i).Name
-				propValue := v.Type().Field(i)
-
-				_, exists := savedTodo.propName
-
-				if exists {
-					savedTodo[propName] = propValue
-				}
-				// c.IndentedJSON(http.StatusOK, a)
-			}
-
-		} else {
-			c.IndentedJSON((http.StatusOK), gin.H{"message": "Nothing to update"})
-		}
-	}
-
-	// if body := c.Request.Body; body != nil {
-
-	// 	v := reflect.ValueOf(body)
-	// 	for i := 0; i < v.NumField(); i++ {
-	// 		propName := v.Type().Field(i).Name
-	// 		propValue := v.Type().Field(i)
-
-	// 		_, exists := savedTodo.propName
-
-	// 		if exists {
-	// 			savedTodo[propName] = propValue
-	// 			c.IndentedJSON(http.StatusOK, a)
-	// 		}
-	// 	}
-
-	// }
+	var data map[string]interface{}
+	json.Unmarshal(rawData, &data)
+	fmt.Println(data)
 
 }
 

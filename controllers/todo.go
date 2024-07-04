@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"almsrr/todo-web-service/data"
 	"almsrr/todo-web-service/handlers"
 	"almsrr/todo-web-service/models"
 
@@ -77,30 +76,28 @@ func GetTodoById(c *gin.Context) {
 func UpdateTodoById(c *gin.Context) {
 	id := c.Param("id")
 	body, _ := c.GetRawData()
-	rawData := make(map[string]string)
+	var todo models.Todo
 
-	for i, todo := range data.Todos {
-		if todo.Id == 1 {
-			/* Converting request body type []byte to map
-			to delete the key id before updating */
-			json.Unmarshal(body, &rawData)
-			delete(rawData, "id")
+	row := handlers.DB.QueryRow("SELECT * FROM Todo WHERE id = ?", id)
+	if err := row.Scan(&todo.Id, &todo.Title, &todo.Description, &todo.Completed); err != nil {
+		if err == sql.ErrNoRows {
 
-			/* Turning rawData back to []bytes so
-			Marshal() can match keys and update them */
-			jsonBytes, _ := json.Marshal(rawData)
-			json.Unmarshal(jsonBytes, &data.Todos[i])
-
-			c.IndentedJSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Todo %v updated", id)})
+			c.IndentedJSON((http.StatusNotFound), gin.H{"message": "Todo not found"})
 			return
-
-		} else {
-			if i == len(data.Todos)-1 {
-				c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
-				return
-			}
 		}
+		panic(err.Error())
 	}
+
+	if err := json.Unmarshal(body, &todo); err != nil {
+		panic(err.Error())
+	}
+
+	_, err := handlers.DB.Exec("UPDATE Todo SET title = ?, description = ?, completed = ? WHERE id = ?", todo.Title, todo.Description, todo.Completed, id)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"id": todo.Id})
 }
 
 func DeleteTodoById(c *gin.Context) {

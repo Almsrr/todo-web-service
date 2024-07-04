@@ -6,24 +6,34 @@ import (
 	"net/http"
 
 	"almsrr/todo-web-service/data"
+	"almsrr/todo-web-service/handlers"
 	"almsrr/todo-web-service/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-
 func GetTodos(c *gin.Context) {
+
 	c.IndentedJSON(http.StatusOK, data.Todos)
 }
 
 func PostTodo(c *gin.Context) {
-	var newTodo models.Todo
-	if err := c.BindJSON((&newTodo)); err != nil {
+	var body models.Todo
+	if err := c.BindJSON((&body)); err != nil {
 		return
 	}
 
-	data.Todos = append(data.Todos, newTodo)
-	c.IndentedJSON(http.StatusCreated, newTodo)
+	result, err := handlers.DB.Exec("INSERT INTO Todo (title, description, completed) VALUES (?, ?, ?)", body.Title, body.Description, body.Completed)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	c.IndentedJSON(http.StatusCreated, id)
 }
 
 func GetTodoById(c *gin.Context) {

@@ -13,8 +13,27 @@ import (
 )
 
 func GetTodos(c *gin.Context) {
+	var todos []models.Todo
 
-	c.IndentedJSON(http.StatusOK, data.Todos)
+	rows, err := handlers.DB.Query("SELECT * FROM Todo")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var todo models.Todo
+		if err := rows.Scan(&todo.Id, &todo.Title, &todo.Description, &todo.Completed); err != nil {
+			panic(err.Error())
+		}
+		todos = append(todos, todo)
+	}
+
+	if err := rows.Err(); err != nil {
+		panic(err.Error())
+	}
+
+	c.IndentedJSON(http.StatusOK, todos)
 }
 
 func PostTodo(c *gin.Context) {

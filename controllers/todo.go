@@ -16,7 +16,7 @@ import (
 func GetTodos(c *gin.Context) {
 	var todos []models.Todo
 
-	rows, err := handlers.DB.Query("SELECT * FROM Todo")
+	rows, err := handlers.DB.Query("SELECT * FROM Todo ORDER BY id DESC")
 	if err != nil {
 		panic(err.Error())
 	}

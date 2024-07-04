@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"almsrr/todo-web-service/data"
 	"almsrr/todo-web-service/handlers"
@@ -52,19 +54,24 @@ func PostTodo(c *gin.Context) {
 		panic(err.Error())
 	}
 
-	c.IndentedJSON(http.StatusCreated, id)
+	c.IndentedJSON(http.StatusCreated, gin.H{"id": id})
 }
 
 func GetTodoById(c *gin.Context) {
 	id := c.Param("id")
+	var todo models.Todo
 
-	for _, todo := range data.Todos {
-		if todo.Id == id {
-			c.IndentedJSON(http.StatusOK, todo)
+	row := handlers.DB.QueryRow("SELECT * FROM Todo WHERE id = ?", id)
+	if err := row.Scan(&todo.Id, &todo.Title, &todo.Description, &todo.Completed); err != nil {
+		if err == sql.ErrNoRows {
+
+			c.IndentedJSON((http.StatusNotFound), gin.H{"message": "Todo not found"})
 			return
 		}
+		panic(err.Error())
 	}
-	c.IndentedJSON((http.StatusNotFound), gin.H{"message": "Todo not found"})
+
+	c.IndentedJSON(http.StatusOK, todo)
 }
 
 func UpdateTodoById(c *gin.Context) {
@@ -73,7 +80,7 @@ func UpdateTodoById(c *gin.Context) {
 	rawData := make(map[string]string)
 
 	for i, todo := range data.Todos {
-		if todo.Id == id {
+		if todo.Id == 1 {
 			/* Converting request body type []byte to map
 			to delete the key id before updating */
 			json.Unmarshal(body, &rawData)
@@ -99,13 +106,26 @@ func UpdateTodoById(c *gin.Context) {
 func DeleteTodoById(c *gin.Context) {
 	id := c.Param("id")
 
-	for i, todo := range data.Todos {
-		if todo.Id == id {
-			data.Todos = append(data.Todos[:i], data.Todos[i+1:]...)
-			c.IndentedJSON(http.StatusOK, gin.H{"id": id})
-			return
-		}
+	result, err := handlers.DB.Exec("DELETE FROM Todo WHERE id = ?", id)
+	if err != nil {
+		panic(err.Error())
 	}
 
-	c.IndentedJSON((http.StatusNotFound), gin.H{"message": "Todo not found"})
+	rows, err := result.RowsAffected()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if rows == 0 {
+		c.IndentedJSON((http.StatusNotFound), gin.H{"message": "Todo not found"})
+		return
+	}
+
+	i, err := strconv.Atoi(id)
+	if err != nil {
+		fmt.Printf("Cannot parse id")
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"id": i})
+
 }

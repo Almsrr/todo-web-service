@@ -1,6 +1,6 @@
-CREATE DATABASE `Todos-Service`;
+CREATE DATABASE `TodosWebService`;
 
-USE `Todos-Service`;
+USE `TodosWebService`;
 
 DROP TABLE IF EXISTS Todo;
 

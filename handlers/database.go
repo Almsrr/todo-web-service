@@ -1,39 +1,35 @@
 package handlers
 
 import (
-	"database/sql"
+	"almsrr/todo-web-service/models"
 	"fmt"
 	"log"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-
-var DB *sql.DB
+var DB *gorm.DB
 
 func ConnectToDb() {
 	env, _ := godotenv.Read(".env")
-
-	config := mysql.Config{
-		User:   env["DBUSER"],
-		Passwd: env["DBPASS"],
-		Net:    "tcp",
-		Addr:   "127.0.0.1:3306",
-		DBName: "Todos-Service",
-		AllowNativePasswords: true,
-	}	
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", env["DB_USER"], env["DB_PASS"], env["DB_HOST"], env["DB_PORT"], env["DB_NAME"])
 
 	var err error
-	DB, err = sql.Open("mysql", config.FormatDSN())
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pingErr := DB.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
+	log.Println("Connected to database")
 
-	fmt.Println("Connected to database")
+	createTables()
+}
+
+func createTables() {
+	DB.AutoMigrate(&models.Todo{})
+
+	log.Println("Tables created")
 }

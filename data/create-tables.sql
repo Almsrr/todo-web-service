@@ -2,9 +2,9 @@ CREATE DATABASE `TodosWebService`;
 
 USE `TodosWebService`;
 
-DROP TABLE IF EXISTS Todo;
+DROP TABLE IF EXISTS todos;
 
-CREATE TABLE Todo (
+CREATE TABLE todos (
     id INT AUTO_INCREMENT NOT NULL,
     title VARCHAR(500) NOT NULL,
     description VARCHAR(255) NOT NULL,

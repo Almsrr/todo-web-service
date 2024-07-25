@@ -3,6 +3,13 @@
 
 A small Go project that performs the four basic operations in any system: CRUD. It counts with its own web and mobile app.
 
+## Stack
+
+- Go
+- GIN
+- GORM
+- AIR
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
